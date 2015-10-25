@@ -298,7 +298,7 @@ public final class WindowManagerGlobal {
             throw e;
         }
     }
-
+    //TODO:window的更新过程
     public void updateViewLayout(View view, ViewGroup.LayoutParams params) {
         if (view == null) {
             throw new IllegalArgumentException("view must not be null");
@@ -319,14 +319,14 @@ public final class WindowManagerGlobal {
             root.setLayoutParams(wparams, false);
         }
     }
-
+    // TODO:removeView
     public void removeView(View view, boolean immediate) {
         if (view == null) {
             throw new IllegalArgumentException("view must not be null");
         }
 
         synchronized (mLock) {
-            int index = findViewLocked(view, true);
+            int index = findViewLocked(view, true); //先找到view的index
             View curView = mRoots.get(index).getView();
             removeViewLocked(index, immediate);
             if (curView == view) {
@@ -362,22 +362,22 @@ public final class WindowManagerGlobal {
             }
         }
     }
-
+    //TODO:删除View
     private void removeViewLocked(int index, boolean immediate) {
-        ViewRootImpl root = mRoots.get(index);
+        ViewRootImpl root = mRoots.get(index); //获得当前的view的viewRootImpl
         View view = root.getView();
 
-        if (view != null) {
+        if (view != null) { //先让imm下降
             InputMethodManager imm = InputMethodManager.getInstance();
             if (imm != null) {
                 imm.windowDismissed(mViews.get(index).getWindowToken());
             }
         }
-        boolean deferred = root.die(immediate);
+        boolean deferred = root.die(immediate); //die方法只是发送一个请求删除的消息之后就就返回
         if (view != null) {
             view.assignParent(null);
             if (deferred) {
-                mDyingViews.add(view);
+                mDyingViews.add(view);//加入dyingView
             }
         }
     }
@@ -396,7 +396,7 @@ public final class WindowManagerGlobal {
             doTrimForeground();
         }
     }
-
+    // 小function典范
     private int findViewLocked(View view, boolean required) {
         final int index = mViews.indexOf(view);
         if (required && index < 0) {

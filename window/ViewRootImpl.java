@@ -439,7 +439,7 @@ public final class ViewRootImpl implements ViewParent,
     }
 
     /**
-     * We have one child
+     * We have one child 可以看到WindowManagerGlobal来使用的
      */
     public void setView(View view, WindowManager.LayoutParams attrs, View panelParentView) {
         synchronized (this) {
@@ -515,15 +515,18 @@ public final class ViewRootImpl implements ViewParent,
                 // Schedule the first layout -before- adding to the window
                 // manager, to make sure we do the relayout before receiving
                 // any other events from the system.
+                //TODO:requestLayout 完成异步刷新请求
                 requestLayout();
                 if ((mWindowAttributes.inputFeatures
                         & WindowManager.LayoutParams.INPUT_FEATURE_NO_INPUT_CHANNEL) == 0) {
                     mInputChannel = new InputChannel();
                 }
+                //TODO:通过WindowSession最终完成Window添加过程,window的添加过程是一个IPC调用
                 try {
                     mOrigWindowType = mWindowAttributes.type;
                     mAttachInfo.mRecomputeGlobalAttributes = true;
                     collectViewAttributes();
+                    //TODO:WindowSession添加 addToDisplay
                     res = mWindowSession.addToDisplay(mWindow, mSeq, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(),
                             mAttachInfo.mContentInsets, mAttachInfo.mStableInsets, mInputChannel);
@@ -873,7 +876,7 @@ public final class ViewRootImpl implements ViewParent,
         if (!mHandlingLayoutInLayoutRequest) {
             checkThread();
             mLayoutRequested = true;
-            scheduleTraversals();
+            scheduleTraversals(); // 实际View绘制的入口
         }
     }
 
@@ -3104,7 +3107,7 @@ public final class ViewRootImpl implements ViewParent,
     private final static int MSG_WINDOW_MOVED = 24;
     private final static int MSG_SYNTHESIZE_INPUT_EVENT = 25;
     private final static int MSG_DISPATCH_WINDOW_SHOWN = 26;
-
+    //TODO:ViewRootHandler这是ViewRootImpl的一些异步处理啦.
     final class ViewRootHandler extends Handler {
         @Override
         public String getMessageName(Message message) {
@@ -5465,22 +5468,23 @@ public final class ViewRootImpl implements ViewParent,
     /**
      * @param immediate True, do now if not in traversal. False, put on queue and do later.
      * @return True, request has been queued. False, request has been completed.
+     * TODO:这个时候是进行同步还是异步,那么就是immediate来判断
      */
     boolean die(boolean immediate) {
         // Make sure we do execute immediately if we are in the middle of a traversal or the damage
         // done by dispatchDetachedFromWindow will cause havoc on return.
-        if (immediate && !mIsInTraversal) {
+        if (immediate && !mIsInTraversal) { //如果是同步,并且不是在traversal
             doDie();
             return false;
         }
 
-        if (!mIsDrawing) {
+        if (!mIsDrawing) { //TODO:??????
             destroyHardwareRenderer();
         } else {
             Log.e(TAG, "Attempting to destroy the window while drawing!\n" +
                     "  window=" + this + ", title=" + mWindowAttributes.getTitle());
         }
-        mHandler.sendEmptyMessage(MSG_DIE);
+        mHandler.sendEmptyMessage(MSG_DIE); //不是同步,就直接发送一个消息吧
         return true;
     }
 
@@ -5493,7 +5497,7 @@ public final class ViewRootImpl implements ViewParent,
             }
             mRemoved = true;
             if (mAdded) {
-                dispatchDetachedFromWindow();
+                dispatchDetachedFromWindow();//真实的删除
             }
 
             if (mAdded && !mFirst) {

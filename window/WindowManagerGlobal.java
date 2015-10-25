@@ -110,11 +110,14 @@ public final class WindowManagerGlobal {
     private static IWindowSession sWindowSession;
 
     private final Object mLock = new Object();
-
+    // 存储所有window所对应的view
     private final ArrayList<View> mViews = new ArrayList<View>();
+    // 存在window所对应的viewRootImpl
     private final ArrayList<ViewRootImpl> mRoots = new ArrayList<ViewRootImpl>();
+    // 存储了所有window对应的布局参数
     private final ArrayList<WindowManager.LayoutParams> mParams =
             new ArrayList<WindowManager.LayoutParams>();
+    // 存储了那些正在被删除的view对象,调用了removeVIew,但是没有完成的
     private final ArraySet<View> mDyingViews = new ArraySet<View>();
 
     private Runnable mSystemPropertyUpdater;
@@ -200,9 +203,11 @@ public final class WindowManagerGlobal {
 
         return null;
     }
-
+    // 2015.10.25 window WindowManagerGlobal实际来执行addView,display 是从Window传递
+    //过来的
     public void addView(View view, ViewGroup.LayoutParams params,
             Display display, Window parentWindow) {
+        //检查参数是否合法
         if (view == null) {
             throw new IllegalArgumentException("view must not be null");
         }
@@ -214,6 +219,7 @@ public final class WindowManagerGlobal {
         }
 
         final WindowManager.LayoutParams wparams = (WindowManager.LayoutParams)params;
+        // 如果是子window那么还需要调整一些布局参数
         if (parentWindow != null) {
             parentWindow.adjustLayoutParamsForSubWindow(wparams);
         } else {
@@ -223,7 +229,7 @@ public final class WindowManagerGlobal {
             if (context != null
                     && context.getApplicationInfo().targetSdkVersion >= Build.VERSION_CODES.LOLLIPOP) {
                 wparams.flags |= WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
-            }
+            } //如果没有parent,那么就默认开启硬件加速
         }
 
         ViewRootImpl root;
@@ -267,7 +273,7 @@ public final class WindowManagerGlobal {
                     }
                 }
             }
-
+            // 创建ViewRootImpl,然后将下述对象添加到列表中
             root = new ViewRootImpl(view.getContext(), display);
 
             view.setLayoutParams(wparams);
@@ -279,6 +285,7 @@ public final class WindowManagerGlobal {
 
         // do this last because it fires off messages to start doing things
         try {
+            // 添加啦!!!!!!!!这是通过ViewRootImpl的setView来完成
             root.setView(view, wparams, panelParentView);
         } catch (RuntimeException e) {
             // BadTokenException or InvalidDisplayException, clean up.

@@ -365,7 +365,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         // decor, when theme attributes and the like are crystalized. Do not check the feature
         // before this happens.
         if (mContentParent == null) { //[window]如何没有DecorView,那么就新建一个
-            installDecor();
+            installDecor(); //[window]
         } else if (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
             mContentParent.removeAllViews();
         }
@@ -375,6 +375,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     getContext());
             transitionTo(newScene);
         } else {
+            //[window]第二步,将layout添加到mContentParent
             mLayoutInflater.inflate(layoutResID, mContentParent);
         }
         final Callback cb = getCallback();
@@ -3601,11 +3602,12 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
         }
 
         mDecor.startChanging();
-
+        //[window] 根据不同的style生成不同的decorview啊
         View in = mLayoutInflater.inflate(layoutResource, null);
+        // 加入到deco中,所以应该是其第一个child
         decor.addView(in, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
-        mContentRoot = (ViewGroup) in;
-
+        mContentRoot = (ViewGroup) in; //给DecorView的第一个child是mContentView
+        // 这是获得所谓的content
         ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
         if (contentParent == null) {
             throw new RuntimeException("Window couldn't find content container view");
@@ -3667,6 +3669,8 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
     private void installDecor() {
         if (mDecor == null) {
             mDecor = generateDecor(); //直接new出一个DecorView返回
+            // defines the relationship between this viewgroup and its descendants when
+            // take focus in requestFocus
             mDecor.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
             mDecor.setIsRootNamespace(true);
             if (!mInvalidatePanelMenuPosted && mInvalidatePanelMenuFeatures != 0) {
@@ -3674,11 +3678,12 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             }
         }
         if (mContentParent == null) {
-            mContentParent = generateLayout(mDecor);
+            //[window] 这一步也是很重要的.
+            mContentParent = generateLayout(mDecor); //mContentParent是setContentVIew的关键啊
 
             // Set up decor part of UI to ignore fitsSystemWindows if appropriate.
             mDecor.makeOptionalFitsSystemWindows();
-
+            //[window] decorContentParent????????
             final DecorContentParent decorContentParent = (DecorContentParent) mDecor.findViewById(
                     R.id.decor_content_parent);
 

@@ -4561,7 +4561,7 @@ public class Activity extends ContextThemeWrapper
             }
         }
     }
-
+    //[windows] DecorView正式添加并显示
     void makeVisible() {
         if (!mWindowAdded) {
             ViewManager wm = getWindowManager();

@@ -3009,7 +3009,7 @@ public final class ActivityThread {
         r.mPendingRemoveWindow = null;
         r.mPendingRemoveWindowManager = null;
     }
-
+    //[window] 调用Activity的onResum方法,接着调用makeVisible方法,DecorView正式完成添加
     final void handleResumeActivity(IBinder token,
             boolean clearHide, boolean isForward, boolean reallyResume) {
         // If we are getting ready to gc after going to the background, well

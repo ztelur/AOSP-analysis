@@ -5932,12 +5932,14 @@ public class Activity extends ContextThemeWrapper
         mFragments.attachActivity(this, mContainer, null);
         //[window]
         mWindow = PolicyManager.makeNewWindow(this);
+        //当window接收系统发送给它的IO输入事件时,例如键盘和触摸屏事件,就可以转发给相应的Activity
         mWindow.setCallback(this);
 
         mWindow.setOnWindowDismissedCallback(this);
         mWindow.getLayoutInflater().setPrivateFactory(this);
+        //设置键盘输入的模式!!!
         if (info.softInputMode != WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
-            mWindow.setSoftInputMode(info.softInputMode);
+            mWindow.setSoftInputMode(info.softInputMode); //设置软键盘输入区域的显示模式
         }
         if (info.uiOptions != 0) {
             mWindow.setUiOptions(info.uiOptions);
@@ -5965,7 +5967,7 @@ public class Activity extends ContextThemeWrapper
                         Looper.myLooper());
             }
         }
-
+        //设置本地窗口管理器
         mWindow.setWindowManager(
                 (WindowManager)context.getSystemService(Context.WINDOW_SERVICE),
                 mToken, mComponent.flattenToString(),

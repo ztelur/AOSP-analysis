@@ -17568,7 +17568,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
             }
 
             mPrivateFlags |= PFLAG_LAYOUT_REQUIRED;
-        }
+        }=
 
         mOldWidthMeasureSpec = widthMeasureSpec;
         mOldHeightMeasureSpec = heightMeasureSpec;

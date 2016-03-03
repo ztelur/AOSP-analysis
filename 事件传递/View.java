@@ -9555,7 +9555,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                         if ((mPrivateFlags & PFLAG_PRESSED) != 0) {
                             // Remove any future long press/tap checks
                             removeLongPressCallback();
-
+                            
                             setPressed(false);
                         }
                     }

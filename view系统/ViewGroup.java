@@ -3120,6 +3120,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     }
 
     /**
+	 * 分发事件
      * {@inheritDoc}
      */
     @Override
@@ -3138,6 +3139,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 if ((child.mViewFlags & VISIBILITY_MASK) == VISIBLE) {
                     final LayoutParams params = child.getLayoutParams();
                     attachLayoutAnimationParameters(child, params, i, childrenCount);
+					//!!!!很重要，判断child是否可以绑定动画
                     bindLayoutAnimation(child);
                     if (cache) {
                         child.setDrawingCacheEnabled(true);
@@ -3166,11 +3168,12 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                 mAnimationListener.onAnimationStart(controller.getAnimation());
             }
         }
-
+		//很重要，裁剪画布！！！！！！
         int clipSaveCount = 0;
         final boolean clipToPadding = (flags & CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK;
         if (clipToPadding) {
             clipSaveCount = canvas.save();
+            // important
             canvas.clipRect(mScrollX + mPaddingLeft, mScrollY + mPaddingTop,
                     mScrollX + mRight - mLeft - mPaddingRight,
                     mScrollY + mBottom - mTop - mPaddingBottom);
@@ -3195,6 +3198,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             final View child = (preorderedList == null)
                     ? children[childIndex] : preorderedList.get(childIndex);
             if ((child.mViewFlags & VISIBILITY_MASK) == VISIBLE || child.getAnimation() != null) {
+				//在这里drawChild
                 more |= drawChild(canvas, child, drawingTime);
             }
         }
@@ -3402,6 +3406,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @return True if an invalidate() was issued
      */
     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+		//这里就调用child的draw方法啦，而不是draw(canvas)方法！！！！！
         return child.draw(canvas, this, drawingTime);
     }
 
@@ -5524,7 +5529,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             int parentWidthMeasureSpec, int widthUsed,
             int parentHeightMeasureSpec, int heightUsed) {
         final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
-
+		//这里就是转换了child的margin,而且这个转换是不同的viewgroup是不同的，不能都使用这个
         final int childWidthMeasureSpec = getChildMeasureSpec(parentWidthMeasureSpec,
                 mPaddingLeft + mPaddingRight + lp.leftMargin + lp.rightMargin
                         + widthUsed, lp.width);

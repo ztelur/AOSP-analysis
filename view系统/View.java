@@ -11775,7 +11775,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if (skipInvalidate()) {
             return;
         }
-
+		//DRAWN和HAS_BOUNDS是否被设置为１，说明上一次请求执行的UI绘制已经完成，那么可以再次请求执行
         if ((mPrivateFlags & (PFLAG_DRAWN | PFLAG_HAS_BOUNDS)) == (PFLAG_DRAWN | PFLAG_HAS_BOUNDS)
                 || (invalidateCache && (mPrivateFlags & PFLAG_DRAWING_CACHE_VALID) == PFLAG_DRAWING_CACHE_VALID)
                 || (mPrivateFlags & PFLAG_INVALIDATED) != PFLAG_INVALIDATED
@@ -11787,7 +11787,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
             mPrivateFlags |= PFLAG_DIRTY;
 
-            if (invalidateCache) {
+            if (invalidateCache) { //是否让view的缓存都失效
                 mPrivateFlags |= PFLAG_INVALIDATED;
                 mPrivateFlags &= ~PFLAG_DRAWING_CACHE_VALID;
             }
@@ -11795,10 +11795,12 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
             // Propagate the damage rectangle to the parent view.
             final AttachInfo ai = mAttachInfo;
             final ViewParent p = mParent;
+			//通过ViewParent来执行操作，如果当前视图是顶层视图也就是DecorView的视图，那么它的
+			//mParent就是ViewRoot对象，所以是通过ViewRoot的对象来实现的。
             if (p != null && ai != null && l < r && t < b) {
                 final Rect damage = ai.mTmpInvalRect;
                 damage.set(l, t, r, b);
-                p.invalidateChild(this, damage);
+                p.invalidateChild(this, damage);//TODO:这是invalidate执行的主体
             }
 
             // Damage the entire projection receiver, if necessary.
@@ -12220,7 +12222,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         // We try only with the AttachInfo because there's no point in invalidating
         // if we are not attached to our window
         final AttachInfo attachInfo = mAttachInfo;
-        if (attachInfo != null) {
+        if (attachInfo != null) { //你还记得mAttachInfo的作用吗？
             attachInfo.mViewRootImpl.dispatchInvalidateDelayed(this, delayMilliseconds);
         }
     }
@@ -14152,7 +14154,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                     }
                 } else {
                     computeScroll();
-
+					//在这里将画布进行了滚动!!!!
                     canvas.translate(-mScrollX, -mScrollY);
                     mPrivateFlags |= PFLAG_DRAWN | PFLAG_DRAWING_CACHE_VALID;
                     mPrivateFlags &= ~PFLAG_DIRTY_MASK;
@@ -14843,6 +14845,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * This method is called by ViewGroup.drawChild() to have each child view draw itself.
      * This draw() method is an implementation detail and is not intended to be overridden or
      * to be called from anywhere else other than ViewGroup.drawChild().
+	 *
+	 * ViewGroup中drawChild进行调用
      */
     boolean draw(Canvas canvas, ViewGroup parent, long drawingTime) {
         boolean usingRenderNodeProperties = mAttachInfo != null && mAttachInfo.mHardwareAccelerated;
@@ -14969,6 +14973,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
         int sx = 0;
         int sy = 0;
+		//进行计算滚动
         if (!hasDisplayList) {
             computeScroll();
             sx = mScrollX;
@@ -14983,7 +14988,9 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if (!usingRenderNodeProperties || transformToApply != null) {
             restoreTo = canvas.save();
         }
+		//这里进行了平移。
         if (offsetForScroll) {
+			//???????????????
             canvas.translate(mLeft - sx, mTop - sy);
         } else {
             if (!usingRenderNodeProperties) {
@@ -15137,6 +15144,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                         mPrivateFlags &= ~PFLAG_DIRTY_MASK;
                         dispatchDraw(canvas);
                     } else {
+						// 在这里调用了draw
                         draw(canvas);
                     }
                 } else {
@@ -15424,6 +15432,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         if ((scrollX | scrollY) == 0) {
             background.draw(canvas);
         } else {
+			//确保background不受scroll的影响
             canvas.translate(scrollX, scrollY);
             background.draw(canvas);
             canvas.translate(-scrollX, -scrollY);
@@ -15654,6 +15663,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      */
     @SuppressWarnings({"unchecked"})
     public void layout(int l, int t, int r, int b) {
+		//如果下边这个标记位被设置了，那么就要在layout之前在onMeasure一次
         if ((mPrivateFlags3 & PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT) != 0) {
             onMeasure(mOldWidthMeasureSpec, mOldHeightMeasureSpec);
             mPrivateFlags3 &= ~PFLAG3_MEASURE_NEEDED_BEFORE_LAYOUT;
@@ -15664,12 +15674,14 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         int oldB = mBottom;
         int oldR = mRight;
 
+		// setFrame,如果当前视图的大小和位置和上一次发生了改变，那么就会返回true
         boolean changed = isLayoutModeOptical(mParent) ?
                 setOpticalFrame(l, t, r, b) : setFrame(l, t, r, b);
 
         if (changed || (mPrivateFlags & PFLAG_LAYOUT_REQUIRED) == PFLAG_LAYOUT_REQUIRED) {
             //只有当changed或者 FLAG_LAYOUT_REQUIRED被设置时才会layout
             onLayout(changed, l, t, r, b);
+			//去掉标记位
             mPrivateFlags &= ~PFLAG_LAYOUT_REQUIRED;
 
             //然后通知Listener onLayoutChange
@@ -15729,27 +15741,32 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
             changed = true;
 
             // Remember our drawn bit
+			// 获得draw的标记位
             int drawn = mPrivateFlags & PFLAG_DRAWN;
 
             int oldWidth = mRight - mLeft;
             int oldHeight = mBottom - mTop;
             int newWidth = right - left;
             int newHeight = bottom - top;
+			//判断大小是否改变了
             boolean sizeChanged = (newWidth != oldWidth) || (newHeight != oldHeight);
 
             // Invalidate our old position
+			// 这里应该会导致重绘?????????会检查上一次是否绘制，如果没有就进行绘制
             invalidate(sizeChanged);
 
             mLeft = left;
             mTop = top;
             mRight = right;
             mBottom = bottom;
-            mRenderNode.setLeftTopRightBottom(mLeft, mTop, mRight, mBottom);
 
+            mRenderNode.setLeftTopRightBottom(mLeft, mTop, mRight, mBottom);
+			//设置好了四个值，就是一个有边界的ｖｉｅｗ，设置标记位
             mPrivateFlags |= PFLAG_HAS_BOUNDS;
 
 
             if (sizeChanged) {
+				//调用sizeChanged应该会导致onSizeChanged调用
                 sizeChange(newWidth, newHeight, oldWidth, oldHeight);
             }
 
@@ -17498,6 +17515,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * <p>
      * This is called to find out how big a view should be. The parent
      * supplies constraint information in the width and height parameters.
+	 * 由这个函数来确定view有多大，一般来说parent会给出限定的信息
      * </p>
      *
      * <p>
@@ -17515,6 +17533,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @see #onMeasure(int, int)
      */
     public final void measure(int widthMeasureSpec, int heightMeasureSpec) {
+		// isLayoutModeOptical 标示这个view是否为viewgroup并且有可见的边界
         boolean optical = isLayoutModeOptical(this);
         if (optical != isLayoutModeOptical(mParent)) {
             Insets insets = getOpticalInsets();
@@ -17528,7 +17547,6 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         // Suppress sign extension for the low bytes
         long key = (long) widthMeasureSpec << 32 | (long) heightMeasureSpec & 0xffffffffL;
         if (mMeasureCache == null) mMeasureCache = new LongSparseLongArray(2);
-
         final boolean forceLayout = (mPrivateFlags & PFLAG_FORCE_LAYOUT) == PFLAG_FORCE_LAYOUT;
         final boolean isExactly = MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY &&
                 MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY;
@@ -17536,11 +17554,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 getMeasuredWidth() == MeasureSpec.getSize(widthMeasureSpec) &&
                 getMeasuredHeight() == MeasureSpec.getSize(heightMeasureSpec);
         //经过很多判断才会继续调用的啊，减少measure的次数啊
+		//
+		// 当FLAG_FORCE_LAYOUT位为１时，就是当前视图请求一次布局操作
+		//或者当前当前width和height不等于老的时候
         if (forceLayout || !matchingSize &&
                 (widthMeasureSpec != mOldWidthMeasureSpec ||
                         heightMeasureSpec != mOldHeightMeasureSpec)) {
 
             // first clears the measured dimension flag
+			// 这一步很重要，先清楚掉measured的标记
             mPrivateFlags &= ~PFLAG_MEASURED_DIMENSION_SET;
 
             resolveRtlPropertiesIfNeeded();
@@ -17700,8 +17722,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * optionally the bit {@link #MEASURED_STATE_TOO_SMALL} set if the resulting
      * size is smaller than the size the view wants to be.
      *
-     * @param size How big the view wants to be
-     * @param measureSpec Constraints imposed by the parent
+     * @param size How big the view wants to be　这是view自己计算出来的值
+     * @param measureSpec Constraints imposed by the parent 这是parent给出的值
      * @return Size information bit mask as defined by
      * {@link #MEASURED_SIZE_MASK} and {@link #MEASURED_STATE_TOO_SMALL}.
      */
@@ -18791,7 +18813,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     public boolean hasNestedScrollingParent() {
         return mNestedScrollingParent != null;
     }
-
+	//TODO:
     /**
      * Dispatch one step of a nested scroll in progress.
      *
@@ -20185,6 +20207,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     /**
      * A set of information given to a view when it is attached to its parent
      * window.
+	 * 当View绑定到window时给的信息
      */
     final static class AttachInfo {
         interface Callbacks {

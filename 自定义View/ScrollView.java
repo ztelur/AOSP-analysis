@@ -240,11 +240,14 @@ public class ScrollView extends FrameLayout {
         setFocusable(true);
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
         setWillNotDraw(false);
+		// 这里有ViewConfiguration的几个使用的参数
         final ViewConfiguration configuration = ViewConfiguration.get(mContext);
         mTouchSlop = configuration.getScaledTouchSlop();
+		// 需要启动一个Fling动作的最小最大速度
         mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
         mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
-        mOverscrollDistance = configuration.getScaledOverscrollDistance();
+     	//　出现edge effects 之后还要在多滑多少距离
+		mOverscrollDistance = configuration.getScaledOverscrollDistance();
         mOverflingDistance = configuration.getScaledOverflingDistance();
     }
 
@@ -488,6 +491,7 @@ public class ScrollView extends FrameLayout {
 
         /*
          * Don't try to intercept touch if we can't scroll anyway.
+		 * canScrollVertical是View的一个方法!!!
          */
         if (getScrollY() == 0 && !canScrollVertically(1)) {
             return false;
@@ -522,6 +526,7 @@ public class ScrollView extends FrameLayout {
                 final int y = (int) ev.getY(pointerIndex);
 				//获得y值的差距
                 final int yDiff = Math.abs(y - mLastMotionY);
+				// getNestedScrollAxes viewgroup 表面child or descendant can't scroll vertical
                 if (yDiff > mTouchSlop && (getNestedScrollAxes() & SCROLL_AXIS_VERTICAL) == 0) {
                     mIsBeingDragged = true;
                     mLastMotionY = y;
@@ -531,11 +536,13 @@ public class ScrollView extends FrameLayout {
                     mNestedYOffset = 0;
 					//TODO:作用？/
                     if (mScrollStrictSpan == null) {
+						//这是进入一个互斥区？？？？？
                         mScrollStrictSpan = StrictMode.enterCriticalSpan("ScrollView-scroll");
                     }
 					//TODO：作用
                     final ViewParent parent = getParent();
                     if (parent != null) {
+						//TODO:告诉父控件，我的事件，不要拦截
                         parent.requestDisallowInterceptTouchEvent(true);
                     }
                 }
@@ -652,6 +659,7 @@ public class ScrollView extends FrameLayout {
 
                 final int y = (int) ev.getY(activePointerIndex);
                 int deltaY = mLastMotionY - y;
+				//TODO:这是View的方法，21之后才有，处理nestedScroll的一套
                 if (dispatchNestedPreScroll(0, deltaY, mScrollConsumed, mScrollOffset)) {
                     deltaY -= mScrollConsumed[1];
                     vtev.offsetLocation(0, mScrollOffset[1]);
@@ -722,6 +730,7 @@ public class ScrollView extends FrameLayout {
                     int initialVelocity = (int) velocityTracker.getYVelocity(mActivePointerId);
 
                     if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
+						//需要一个fling动作啦！！！！
                         flingWithNestedDispatch(-initialVelocity);
                     } else if (mScroller.springBack(mScrollX, mScrollY, 0, 0, 0,
                             getScrollRange())) {
@@ -810,20 +819,23 @@ public class ScrollView extends FrameLayout {
     protected void onOverScrolled(int scrollX, int scrollY,
             boolean clampedX, boolean clampedY) {
         // Treat animating scrolls differently; see #computeScroll() for why.
+		// 如果结束啦，那么要调用onScrollChanged
         if (!mScroller.isFinished()) {
             final int oldX = mScrollX;
             final int oldY = mScrollY;
             mScrollX = scrollX;
             mScrollY = scrollY;
             invalidateParentIfNeeded();
+			
             onScrollChanged(mScrollX, mScrollY, oldX, oldY);
             if (clampedY) {
                 mScroller.springBack(mScrollX, mScrollY, 0, 0, 0, getScrollRange());
             }
         } else {
+			//如果scroller没有结束，就直接scrollTo
             super.scrollTo(scrollX, scrollY);
         }
-
+		//TODO:triger the scrollbar to draw
         awakenScrollBars();
     }
 
@@ -1310,10 +1322,13 @@ public class ScrollView extends FrameLayout {
 
                 overScrollBy(x - oldX, y - oldY, oldX, oldY, 0, range,
                         0, mOverflingDistance, false);
+				//TODO:这些函数的作用啊！！！
+				//This is called in response to an internal scroll in this view (i.e., the view scrolled its own contents). 
                 onScrollChanged(mScrollX, mScrollY, oldX, oldY);
 
                 if (canOverscroll) {
                     if (y < 0 && oldY >= 0) {
+						//给一个速度，专门用于fling到达scrollable界面边界的情况
                         mEdgeGlowTop.onAbsorb((int) mScroller.getCurrVelocity());
                     } else if (y > range && oldY <= range) {
                         mEdgeGlowBottom.onAbsorb((int) mScroller.getCurrVelocity());
@@ -1616,7 +1631,7 @@ public class ScrollView extends FrameLayout {
         mIsBeingDragged = false;
 
         recycleVelocityTracker();
-
+		//TODO:这是overScroll的边界效果吧
         if (mEdgeGlowTop != null) {
             mEdgeGlowTop.onRelease();
             mEdgeGlowBottom.onRelease();

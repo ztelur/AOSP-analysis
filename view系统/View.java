@@ -18612,7 +18612,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         final int left = -maxOverScrollX;
         final int right = maxOverScrollX + scrollRangeX;
         final int top = -maxOverScrollY;
-        final int bottom = maxOverScrollY + scrollRangeY;
+        final int bottom = maxOverScrollY + scrollRangeY; // 对的，其中botton是scrollRange+OverScrollY
 
         boolean clampedX = false;
         if (newScrollX > right) {
@@ -18625,7 +18625,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
         boolean clampedY = false;
         if (newScrollY > bottom) {
-            newScrollY = bottom;
+            newScrollY = bottom; //如果大于bottom了，那么就直接设置为bottom
             clampedY = true;
         } else if (newScrollY < top) {
             newScrollY = top;

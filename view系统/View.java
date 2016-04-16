@@ -14161,6 +14161,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
 
                     // Fast path for layouts with no backgrounds
                     if ((mPrivateFlags & PFLAG_SKIP_DRAW) == PFLAG_SKIP_DRAW) {
+                      // FLAGS_SKIP_DRAW 就是viewlayout 所以直接dispatchDraw就可以啦
                         dispatchDraw(canvas);
                         if (mOverlay != null && !mOverlay.isEmpty()) {
                             mOverlay.getOverlayView().draw(canvas);

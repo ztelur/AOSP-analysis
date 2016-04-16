@@ -2243,6 +2243,7 @@ public final class ActivityThread {
         }
 
         try {
+            //一个Activity一个Application
             Application app = r.packageInfo.makeApplication(false, mInstrumentation);
 
             if (localLOGV) Slog.v(TAG, "Performing launch of " + r);
@@ -3064,9 +3065,9 @@ public final class ActivityThread {
                     TAG, "Launch " + r + " mStartedActivity set");
                 r.hideForNow = true;
             }
+            cleanUpPendingRemoveWindows(r);
 
             // Get rid of anything left hanging around.
-            cleanUpPendingRemoveWindows(r);
 
             // The window is now visible if it has been added, we are not
             // simply finishing, and we are not starting another activity.

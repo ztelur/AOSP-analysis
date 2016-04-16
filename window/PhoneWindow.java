@@ -1940,6 +1940,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
 
     @Override
     public final View getDecorView() {
+      //如果是null那么就新建一个啦
         if (mDecor == null) {
             installDecor();
         }
@@ -2163,7 +2164,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             checkCloseActionMenu(menu);
         }
     }
-
+    //DecorView是一个ＦｒａｍｅＬａｙｏｕｔ欧
     private final class DecorView extends FrameLayout implements RootViewSurfaceTaker {
 
         /* package */int mDefaultOpacity = PixelFormat.OPAQUE;

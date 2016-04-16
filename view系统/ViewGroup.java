@@ -221,7 +221,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * NOTE: If you change the flags below make sure to reflect the changes
      *       the DisplayList class
      */
-    
+
     // When set, ViewGroup invalidates only the child's rectangle
     // Set by default
     static final int FLAG_CLIP_CHILDREN = 0x1;
@@ -267,7 +267,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * When set, the drawing method will call {@link #getChildDrawingOrder(int, int)}
      * to get the index of the child to draw for that iteration.
-     * 
+     *
      * @hide
      */
     protected static final int FLAG_USE_CHILD_DRAWING_ORDER = 0x400;
@@ -1177,7 +1177,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             children[i].dispatchConfigurationChanged(newConfig);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -2582,7 +2582,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * @see #FOCUS_BEFORE_DESCENDANTS
      * @see #FOCUS_AFTER_DESCENDANTS
      * @see #FOCUS_BLOCK_DESCENDANTS
-     * @see #onRequestFocusInDescendants(int, android.graphics.Rect) 
+     * @see #onRequestFocusInDescendants(int, android.graphics.Rect)
      */
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
@@ -3692,7 +3692,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * <p>Adds a child view. If no layout parameters are already set on the child, the
      * default parameters for this ViewGroup are set on the child.</p>
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -3708,7 +3708,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * Adds a child view. If no layout parameters are already set on the child, the
      * default parameters for this ViewGroup are set on the child.
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4120,7 +4120,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
 
     /**
      * {@inheritDoc}
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4139,7 +4139,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
-     * 
+     *
      * @param view the view to remove from the group
      */
     public void removeViewInLayout(View view) {
@@ -4167,7 +4167,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
-     * 
+     *
      * @param index the position in the group of the view to remove
      */
     public void removeViewAt(int index) {
@@ -4340,7 +4340,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * Call this method to remove all child views from the
      * ViewGroup.
-     * 
+     *
      * <p><strong>Note:</strong> do not invoke this method from
      * {@link #draw(android.graphics.Canvas)}, {@link #onDraw(android.graphics.Canvas)},
      * {@link #dispatchDraw(android.graphics.Canvas)} or any related method.</p>
@@ -4609,6 +4609,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
     /**
      * Don't call or override this method. It is used for the implementation of
      * the view hierarchy.
+     * 对的，ViewGroup就是ViewParent的实现，
      */
     public final void invalidateChild(View child, final Rect dirty) {
         ViewParent parent = this;
@@ -4665,7 +4666,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                         (int) (boundingRect.right + 0.5f),
                         (int) (boundingRect.bottom + 0.5f));
             }
-
+            // while一直向上递归
             do {
                 View view = null;
                 if (parent instanceof View) {
@@ -4691,7 +4692,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                         view.mPrivateFlags = (view.mPrivateFlags & ~PFLAG_DIRTY_MASK) | opaqueFlag;
                     }
                 }
-
+                // parent 本来是this,现在编程mParent啦
                 parent = parent.invalidateChildInParent(location, dirty);
                 if (view != null) {
                     // Account for transform on current parent

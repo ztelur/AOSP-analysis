@@ -204,7 +204,7 @@ public final class WindowManagerGlobal {
         return null;
     }
     // 2015.10.25 window WindowManagerGlobal实际来执行addView,display 是从Window传递
-    //过来的
+    //过来的 为什么这里传入的是Ｖｉｅｗ
     public void addView(View view, ViewGroup.LayoutParams params,
             Display display, Window parentWindow) {
         //检查参数是否合法

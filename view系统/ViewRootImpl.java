@@ -1978,7 +1978,7 @@ public final class ViewRootImpl implements ViewParent,
                     }
                     mPendingTransitions.clear();
                 }
-
+                //!!!!! performDraw()
                 performDraw();
             }
         } else {
@@ -2553,7 +2553,7 @@ public final class ViewRootImpl implements ViewParent,
                     scheduleTraversals();
                     return;
                 }
-
+                //下发draw
                 if (!drawSoftware(surface, mAttachInfo, xOffset, yOffset, scalingRequired, dirty)) {
                     return;
                 }

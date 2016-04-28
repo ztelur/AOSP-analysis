@@ -14846,8 +14846,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * This method is called by ViewGroup.drawChild() to have each child view draw itself.
      * This draw() method is an implementation detail and is not intended to be overridden or
      * to be called from anywhere else other than ViewGroup.drawChild().
-	 *
-	 * ViewGroup中drawChild进行调用
+	  *
+	    * ViewGroup中drawChild进行调用
      */
     boolean draw(Canvas canvas, ViewGroup parent, long drawingTime) {
         boolean usingRenderNodeProperties = mAttachInfo != null && mAttachInfo.mHardwareAccelerated;

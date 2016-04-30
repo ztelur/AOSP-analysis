@@ -97,6 +97,7 @@ public class ValueAnimator extends Animator {
 
     // The static sAnimationHandler processes the internal timing loop on which all animations
     // are based
+    //这两个静态变量很有深度的，要好好研究一下
     /**
      * @hide
      */
@@ -622,7 +623,7 @@ public class ValueAnimator extends Animator {
      * values will happen on the UI thread and that all animations will share
      * the same times for calculating their values, which makes synchronizing
      * animations possible.
-     *
+     * 所有活动的动画都使用同一个ｈａｎｄｌｅｒ，让动画同步
      * The handler uses the Choreographer for executing periodic callbacks.
      *
      * @hide
@@ -1025,12 +1026,14 @@ public class ValueAnimator extends Animator {
                 mPlayingBackwards = (mCurrentIteration % 2) != 0;
             }
         }
+        // 重置所有变量
         int prevPlayingState = mPlayingState;
         mPlayingState = STOPPED;
         mStarted = true;
         mStartedDelay = false;
         mPaused = false;
         updateScaledDuration(); // in case the scale factor has changed since creation time
+        //这边是重点，涉及到ThreadLocal的使用
         AnimationHandler animationHandler = getOrCreateAnimationHandler();
         animationHandler.mPendingAnimations.add(this);
         if (mStartDelay == 0) {
@@ -1355,7 +1358,7 @@ public class ValueAnimator extends Animator {
      * and then into an animated value (from the evaluator. The function is called mostly during
      * animation updates, but it is also called when the <code>end()</code>
      * function is called, to set the final value on the property.
-     *
+     *　这是一个比较重要的方法，可以说是Animator和Interpolcation的交互方法
      * <p>Overrides of this method must call the superclass to perform the calculation
      * of the animated value.</p>
      *
@@ -1366,11 +1369,12 @@ public class ValueAnimator extends Animator {
         mCurrentFraction = fraction;
         int numValues = mValues.length;
         for (int i = 0; i < numValues; ++i) {
-            mValues[i].calculateValue(fraction);
+            mValues[i].calculateValue(fraction);//ViewPropertyViewHolder
         }
         if (mUpdateListeners != null) {
             int numListeners = mUpdateListeners.size();
             for (int i = 0; i < numListeners; ++i) {
+                //这边就结束啦，直接传递给AnimationUpdateListener
                 mUpdateListeners.get(i).onAnimationUpdate(this);
             }
         }

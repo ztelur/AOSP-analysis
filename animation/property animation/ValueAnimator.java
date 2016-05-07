@@ -409,9 +409,11 @@ public class ValueAnimator extends Animator {
         if (values == null || values.length == 0) {
             return;
         }
+        // mValues如果没有初始化或者无值的话
         if (mValues == null || mValues.length == 0) {
             setValues(PropertyValuesHolder.ofFloat("", values));
         } else {
+            //否则直接取出第一个位置的对象，进行复制。
             PropertyValuesHolder valuesHolder = mValues[0];
             valuesHolder.setFloatValues(values);
         }

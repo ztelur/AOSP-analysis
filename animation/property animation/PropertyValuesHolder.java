@@ -604,6 +604,7 @@ public class PropertyValuesHolder implements Cloneable {
      * @param values One or more values that the animation will animate between.
      */
     public void setFloatValues(float... values) {
+       //做了两个事情,一是设置了类型,另外一个是生成了Keyframe,关键的类就是Keyframe啦
         mValueType = float.class;
         mKeyframes = KeyframeSet.ofFloat(values);
     }
@@ -987,7 +988,7 @@ public class PropertyValuesHolder implements Cloneable {
     /**
      * Function used to calculate the value according to the evaluator set up for
      * this PropertyValuesHolder object. This function is called by ValueAnimator.animateValue().
-     *
+     * 每个PropertyValuesHolder都有一个Evaluator
      * @param fraction The elapsed, interpolated fraction of the animation.
      */
     void calculateValue(float fraction) {

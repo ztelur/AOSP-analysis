@@ -787,6 +787,8 @@ public final class ObjectAnimator extends ValueAnimator {
     @Override
     public void start() {
         // See if any of the current active/pending animators need to be canceled
+        // ObjectAnimator在启动时,会先查找一下当前active或者pending的动画是否需要取消
+        //一般取消autoCancel的和和自己的属性是相同属性的动画
         AnimationHandler handler = sAnimationHandler.get();
         if (handler != null) {
             int numAnims = handler.mAnimations.size();
@@ -892,6 +894,7 @@ public final class ObjectAnimator extends ValueAnimator {
      */
     @Override
     public void setTarget(@Nullable Object target) {
+        // 设置目标,使用weakreference来使用
         final Object oldTarget = getTarget();
         if (oldTarget != target) {
             if (isStarted()) {
@@ -953,6 +956,7 @@ public final class ObjectAnimator extends ValueAnimator {
         super.animateValue(fraction);
         int numValues = mValues.length;
         for (int i = 0; i < numValues; ++i) {
+            //这是使用反射将值赋给对象的啦.
             mValues[i].setAnimatedValue(target);
         }
     }

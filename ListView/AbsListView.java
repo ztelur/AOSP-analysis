@@ -2141,8 +2141,10 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         mInLayout = true;
 
         final int childCount = getChildCount();
+        //如果大小和位置发生了变化，那么就changed就是true
         if (changed) {
             for (int i = 0; i < childCount; i++) {
+                //强制刷新
                 getChildAt(i).forceLayout();
             }
             mRecycler.markChildrenDirty();
@@ -2182,6 +2184,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
     /**
      * Subclasses must override this method to layout their children.
      */
+     //最为重要的方法
     protected void layoutChildren() {
     }
 
@@ -2305,11 +2308,12 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
     }
 
     /**
+     * 当无法复用bin的view时，也就是说只能converting an old view或者新建立一个了。
      * Get a view and have it show the data associated with the specified
      * position. This is called when we have already discovered that the view is
      * not available for reuse in the recycle bin. The only choices left are
      * converting an old view or making a new one.
-     *
+     * scrap 报废，废弃的
      * @param position The position to display
      * @param isScrap Array of at least 1 boolean, the first entry will become true if
      *                the returned view was taken from the scrap heap, false if otherwise.
@@ -2329,6 +2333,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
             // If the view type hasn't changed, attempt to re-bind the data.
             if (params.viewType == mAdapter.getItemViewType(position)) {
+                //hahaha 调用了Adapter的getView
                 final View updatedView = mAdapter.getView(position, transientView, this);
 
                 // If we failed to re-bind the data, scrap the obtained view.
@@ -2342,7 +2347,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             isScrap[0] = true;
             return transientView;
         }
-
+        //获得scrap view 并且绑定，但是第一次时一定是无法获得的，一定是null
         final View scrapView = mRecycler.getScrapView(position);
         final View child = mAdapter.getView(position, scrapView, this);
         if (scrapView != null) {
@@ -2351,7 +2356,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                 mRecycler.addScrapView(scrapView, position);
             } else {
                 isScrap[0] = true;
-
                 child.dispatchFinishTemporaryDetach();
             }
         }
@@ -3415,6 +3419,8 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                 // No need to do all this work if we're not going to move anyway
                 boolean atEdge = false;
                 if (incrementalDeltaY != 0) {
+                    //trackMotionScroll这是一个重要的函数
+                    //incrementalDeltaY可以来标记是向上还是向下滑
                     atEdge = trackMotionScroll(deltaY, incrementalDeltaY);
                 }
 
@@ -3584,7 +3590,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             }
         }
     }
-
+    //滑动的入口
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (!isEnabled()) {
@@ -3796,9 +3802,9 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
                     motionView.drawableHotspotChanged(point[0], point[1]);
                 }
                 break;
-            case TOUCH_MODE_SCROLL:
+            case TOUCH_MODE_SCROLL: //一般都是这个mode
             case TOUCH_MODE_OVERSCROLL:
-                scrollIfNeeded((int) ev.getX(pointerIndex), y, vtev);
+                scrollIfNeeded((int) ev.getX(pointerIndex), y, vtev);//进入scroll
                 break;
         }
     }
@@ -4841,7 +4847,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
     /**
      * Track a motion scroll
-     *
+     * 记录
      * @param deltaY Amount to offset mMotionView. This is the accumulated delta since the motion
      *        began. Positive numbers mean the user's finger is moving down the screen.
      * @param incrementalDeltaY Change in deltaY from the previous event.
@@ -4922,14 +4928,14 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         int start = 0;
         int count = 0;
 
-        if (down) {
+        if (down) { //如果是向上滑，
             int top = -incrementalDeltaY;
             if ((mGroupFlags & CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK) {
                 top += listPadding.top;
             }
             for (int i = 0; i < childCount; i++) {
                 final View child = getChildAt(i);
-                if (child.getBottom() >= top) {
+                if (child.getBottom() >= top) { //如果已经在屏幕外
                     break;
                 } else {
                     count++;
@@ -4969,7 +4975,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
         mBlockLayoutRequests = true;
 
-        if (count > 0) {
+        if (count > 0) { //已经超出屏幕的view,也就是已经添加到scrapView中的view
             detachViewsFromParent(start, count);
             mRecycler.removeSkippedScrap();
         }
@@ -4979,7 +4985,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         if (!awakenScrollBars()) {
            invalidate();
         }
-
+        //重要的方法，让listview的所有view根据参数进行偏移
         offsetChildrenTopAndBottom(incrementalDeltaY);
 
         if (down) {
@@ -4987,6 +4993,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         }
 
         final int absIncrementalDeltaY = Math.abs(incrementalDeltaY);
+        //有view移入屏幕
         if (spaceAbove < absIncrementalDeltaY || spaceBelow < absIncrementalDeltaY) {
             fillGap(down);
         }
@@ -6314,6 +6321,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
     }
 
     /**
+     * view重载的
      * The RecycleBin facilitates reuse of views across layouts. The RecycleBin has two levels of
      * storage: ActiveViews and ScrapViews. ActiveViews are those views which were onscreen at the
      * start of a layout. By construction, they are displaying current information. At the end of
@@ -6349,7 +6357,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
         private ArrayList<View> mCurrentScrap;
 
         private ArrayList<View> mSkippedScrap;
-
+        //新加的东西
         private SparseArray<View> mTransientStateViews;
         private LongSparseArray<View> mTransientStateViewsById;
 

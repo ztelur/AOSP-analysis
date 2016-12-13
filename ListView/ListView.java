@@ -165,7 +165,7 @@ public class ListView extends AbsListView {
             // If a divider is specified use its intrinsic height for divider height
             setDivider(d);
         }
-        
+
         final Drawable osHeader = a.getDrawable(
                 com.android.internal.R.styleable.ListView_overScrollHeader);
         if (osHeader != null) {
@@ -458,7 +458,7 @@ public class ListView extends AbsListView {
      *        data backing this list and for producing a view to represent an
      *        item in that data set.
      *
-     * @see #getAdapter() 
+     * @see #getAdapter()
      */
     @Override
     public void setAdapter(ListAdapter adapter) {
@@ -650,7 +650,7 @@ public class ListView extends AbsListView {
      * {@inheritDoc}
      */
     @Override
-    void fillGap(boolean down) {
+    void fillGap(boolean down) { //表示是在上边进入，还是下边进入
         final int count = getChildCount();
         if (down) {
             int paddingTop = 0;
@@ -659,7 +659,7 @@ public class ListView extends AbsListView {
             }
             final int startOffset = count > 0 ? getChildAt(count - 1).getBottom() + mDividerHeight :
                     paddingTop;
-            fillDown(mFirstPosition + count, startOffset);
+            fillDown(mFirstPosition + count, startOffset); //在下侧进行填充
             correctTooHigh(getChildCount());
         } else {
             int paddingBottom = 0;
@@ -675,7 +675,7 @@ public class ListView extends AbsListView {
 
     /**
      * Fills the list from pos down to the end of the list view.
-     *
+     * 在layout中用来填充界面的函数
      * @param pos The first position to put in the list
      *
      * @param nextTop The location where the top of the item associated with pos
@@ -692,7 +692,7 @@ public class ListView extends AbsListView {
             end -= mListPadding.bottom;
         }
 
-        while (nextTop < end && pos < mItemCount) {
+        while (nextTop < end && pos < mItemCount) { //面积和边界，其实就是Layout了。
             // is this the selected item?
             boolean selected = pos == mSelectedPosition;
             View child = makeAndAddView(pos, nextTop, true, mListPadding.left, selected);
@@ -1104,18 +1104,18 @@ public class ListView extends AbsListView {
     private class FocusSelector implements Runnable {
         private int mPosition;
         private int mPositionTop;
-        
+
         public FocusSelector setup(int position, int top) {
             mPosition = position;
             mPositionTop = top;
             return this;
         }
-        
+
         public void run() {
             setSelectionFromTop(mPosition, mPositionTop);
         }
     }
-    
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         if (getChildCount() > 0) {
@@ -1183,7 +1183,7 @@ public class ListView extends AbsListView {
         }
 
         setMeasuredDimension(widthSize , heightSize);
-        mWidthMeasureSpec = widthMeasureSpec;        
+        mWidthMeasureSpec = widthMeasureSpec;
     }
 
     private void measureScrapChild(View child, int position, int widthMeasureSpec) {
@@ -1476,7 +1476,7 @@ public class ListView extends AbsListView {
                         adjustViewsUpOrDown();
                     }
                 } else if (lastPosition == mItemCount - 1) {
-                    adjustViewsUpOrDown();                    
+                    adjustViewsUpOrDown();
                 }
             }
         }
@@ -1484,13 +1484,15 @@ public class ListView extends AbsListView {
 
     @Override
     protected void layoutChildren() {
+        /////////////////////////////////////////////
+        //只layoutChildren一次，在最初的时候
         final boolean blockLayoutRequests = mBlockLayoutRequests;
         if (blockLayoutRequests) {
             return;
         }
 
         mBlockLayoutRequests = true;
-
+        /////////////////////////////////////////////////
         try {
             super.layoutChildren();
 
@@ -1504,6 +1506,7 @@ public class ListView extends AbsListView {
 
             final int childrenTop = mListPadding.top;
             final int childrenBottom = mBottom - mTop - mListPadding.bottom;
+            //第一次时view应该是没有child,所以这次获得0
             final int childCount = getChildCount();
 
             int index = 0;
@@ -1541,7 +1544,6 @@ public class ListView extends AbsListView {
                 if (mNextSelectedPosition >= 0) {
                     delta = mNextSelectedPosition - mSelectedPosition;
                 }
-
                 // Caution: newSel might be null
                 newSel = getChildAt(index + delta);
             }
@@ -1576,6 +1578,7 @@ public class ListView extends AbsListView {
             // Remember which child, if any, had accessibility focus. This must
             // occur before recycling any views, since that will clear
             // accessibility focus.
+            //处理关注点requestFocus
             final ViewRootImpl viewRootImpl = getViewRootImpl();
             if (viewRootImpl != null) {
                 final View focusHost = viewRootImpl.getAccessibilityFocusedHost();
@@ -1632,11 +1635,13 @@ public class ListView extends AbsListView {
                     recycleBin.addScrapView(getChildAt(i), firstPosition+i);
                 }
             } else {
+                //把当前的child都缓存起来
                 recycleBin.fillActiveViews(childCount, firstPosition);
             }
 
             // Clear out old views
             detachAllViewsFromParent();
+            //删除跳过废弃的view
             recycleBin.removeSkippedScrap();
 
             switch (mLayoutMode) {
@@ -1665,9 +1670,9 @@ public class ListView extends AbsListView {
             case LAYOUT_MOVE_SELECTION:
                 sel = moveSelection(oldSel, newSel, delta, childrenTop, childrenBottom);
                 break;
-            default:
+            default: //默认都是Layout_normal 状态，所以都是默认选项
                 if (childCount == 0) {
-                    if (!mStackFromBottom) {
+                    if (!mStackFromBottom) { //默认的布局顺序是从上往下的
                         final int position = lookForSelectablePosition(0, true);
                         setSelectedPositionInt(position);
                         sel = fillFromTop(childrenTop);
@@ -1676,11 +1681,11 @@ public class ListView extends AbsListView {
                         setSelectedPositionInt(position);
                         sel = fillUp(mItemCount - 1, childrenBottom);
                     }
-                } else {
+                } else { //如果不是第一次，而是之后的layout,那么就会到这里
                     if (mSelectedPosition >= 0 && mSelectedPosition < mItemCount) {
                         sel = fillSpecific(mSelectedPosition,
                                 oldSel == null ? childrenTop : oldSel.getTop());
-                    } else if (mFirstPosition < mItemCount) {
+                    } else if (mFirstPosition < mItemCount) {  //默认mSelectedPosition都是-1,所以默认都是进入这个选项
                         sel = fillSpecific(mFirstPosition,
                                 oldFirst == null ? childrenTop : oldFirst.getTop());
                     } else {
@@ -1782,7 +1787,7 @@ public class ListView extends AbsListView {
                     && focusLayoutRestoreView.getWindowToken() != null) {
                 focusLayoutRestoreView.onFinishTemporaryDetach();
             }
-            
+
             mLayoutMode = LAYOUT_NORMAL;
             mDataChanged = false;
             if (mPositionScrollAfterLayout != null) {
@@ -1834,7 +1839,7 @@ public class ListView extends AbsListView {
      * Obtain the view and add it to our list of children. The view can be made
      * fresh, converted from an unused view, or used as is if it was in the
      * recycle bin.
-     *
+     * 创建一个新的View,有可能是new出来的，也有可能是从bin中获得的。
      * @param position Logical position in the list
      * @param y Top or bottom edge of the view to add
      * @param flow If flow is true, align top edge to y. If false, align bottom
@@ -1847,7 +1852,7 @@ public class ListView extends AbsListView {
             boolean selected) {
         View child;
 
-
+        //当数据没有变化时
         if (!mDataChanged) {
             // Try to use an existing view for this position
             child = mRecycler.getActiveView(position);
@@ -1855,11 +1860,11 @@ public class ListView extends AbsListView {
                 // Found it -- we're using an existing child
                 // This just needs to be positioned
                 setupChild(child, position, y, flow, childrenLeft, selected, true);
-
+                //注意，这里setupChild是传入的true
                 return child;
             }
         }
-
+        //数据变化时或者getActiveView为null时
         // Make a new view for this position, or convert an unused view if possible
         child = obtainView(position, mIsScrap);
 
@@ -1905,6 +1910,7 @@ public class ListView extends AbsListView {
 
         if ((recycled && !p.forceAdd) || (p.recycledHeaderFooter &&
                 p.viewType == AdapterView.ITEM_VIEW_TYPE_HEADER_OR_FOOTER)) {
+            //直接加到ListView中去,这是用于被detach的view来说，如果是没有recycle的，那么就调用addViewInLayout
             attachViewToParent(child, flowDown ? -1 : 0, p);
         } else {
             p.forceAdd = false;
@@ -1930,7 +1936,7 @@ public class ListView extends AbsListView {
                 child.setActivated(mCheckStates.get(position));
             }
         }
-
+        //是否需要进行measured
         if (needToMeasure) {
             int childWidthSpec = ViewGroup.getChildMeasureSpec(mWidthMeasureSpec,
                     mListPadding.left + mListPadding.right, p.width);
@@ -1990,7 +1996,7 @@ public class ListView extends AbsListView {
 
     /**
      * Makes the item at the supplied position selected.
-     * 
+     *
      * @param position the position of the item to select
      */
     @Override
@@ -2851,7 +2857,7 @@ public class ListView extends AbsListView {
             if (startPos < firstPosition) {
                 startPos = firstPosition;
             }
-            
+
             final int lastVisiblePos = getLastVisiblePosition();
             final ListAdapter adapter = getAdapter();
             for (int pos = startPos; pos <= lastVisiblePos; pos++) {
@@ -3020,7 +3026,7 @@ public class ListView extends AbsListView {
     /**
      * Determine the distance to the nearest edge of a view in a particular
      * direction.
-     * 
+     *
      * @param descendant A descendant of this list.
      * @return The distance, or 0 if the nearest edge is already on screen.
      */
@@ -3274,7 +3280,7 @@ public class ListView extends AbsListView {
             final int listBottom = mBottom - mTop - effectivePaddingBottom + mScrollY;
             if (!mStackFromBottom) {
                 int bottom = 0;
-                
+
                 // Draw top divider or header for overscroll
                 final int scrollY = mScrollY;
                 if (count > 0 && scrollY < 0) {
@@ -3371,7 +3377,7 @@ public class ListView extends AbsListView {
                         }
                     }
                 }
-                
+
                 if (count > 0 && scrollY > 0) {
                     if (drawOverscrollFooter) {
                         final int absListBottom = mBottom;
@@ -3450,7 +3456,7 @@ public class ListView extends AbsListView {
     public int getDividerHeight() {
         return mDividerHeight;
     }
-    
+
     /**
      * Sets the height of the divider that will be drawn between each item in the list. Calling
      * this will override the intrinsic height as set by {@link #setDivider(Drawable)}
@@ -3508,7 +3514,7 @@ public class ListView extends AbsListView {
     public boolean areFooterDividersEnabled() {
         return mFooterDividersEnabled;
     }
-    
+
     /**
      * Sets the drawable that will be drawn above all other list content.
      * This area can become visible when the user overscrolls the list.
@@ -3761,10 +3767,10 @@ public class ListView extends AbsListView {
     /**
      * Returns the set of checked items ids. The result is only valid if the
      * choice mode has not been set to {@link #CHOICE_MODE_NONE}.
-     * 
+     *
      * @return A new array which contains the id of each checked item in the
      *         list.
-     *         
+     *
      * @deprecated Use {@link #getCheckedItemIds()} instead.
      */
     @Deprecated

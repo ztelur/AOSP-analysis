@@ -1629,7 +1629,7 @@ public final class ViewRootImpl implements ViewParent,
                     if (DEBUG_LAYOUT) Log.v(TAG, "Visible insets changing to: "
                             + mAttachInfo.mVisibleInsets);
                 }
-
+                //TODO:决定是否让newSurface为true,导致后边是否让performDraw
                 if (!hadSurface) {
                     if (mSurface.isValid()) {
                         // If we are creating a new surface, then we need to

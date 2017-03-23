@@ -2198,7 +2198,7 @@ public final class ActivityThread {
         cci.what = what;
         sendMessage(H.CLEAN_UP_CONTEXT, cci);
     }
-
+    //doc:执行初始化Activity的函数。 有两个关键点 如何创建activity
     private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
         // System.out.println("##### [" + System.currentTimeMillis() + "] ActivityThread.performLaunchActivity(" + r + ")");
 
@@ -2219,10 +2219,11 @@ public final class ActivityThread {
             component = new ComponentName(r.activityInfo.packageName,
                     r.activityInfo.targetActivity);
         }
-
+        // 创建Activity
         Activity activity = null;
         try {
             java.lang.ClassLoader cl = r.packageInfo.getClassLoader();
+            //通过Activity的类名，通过反射来创建相应的Activity
             activity = mInstrumentation.newActivity(
                     cl, component.getClassName(), r.intent);
             StrictMode.incrementExpectedActivityCount(activity.getClass());
@@ -2238,7 +2239,7 @@ public final class ActivityThread {
                     + ": " + e.toString(), e);
             }
         }
-
+        //创建Application 这里需要注意啦。竟然是先建立的Activity，然后再建立Application
         try {
             Application app = r.packageInfo.makeApplication(false, mInstrumentation);
 
@@ -2251,6 +2252,7 @@ public final class ActivityThread {
                     + ", dir=" + r.packageInfo.getAppDir());
 
             if (activity != null) {
+              //建立Context.在Activity中getContext中返回的对象就是这个对象
                 Context appContext = createBaseContextForActivity(r, activity);
                 CharSequence title = r.activityInfo.loadLabel(appContext.getPackageManager());
                 Configuration config = new Configuration(mCompatConfiguration);
@@ -2272,6 +2274,7 @@ public final class ActivityThread {
                 }
 
                 activity.mCalled = false;
+                //doc:important 下面这个函数会调用Activity的onCreate函数。
                 if (r.isPersistable()) {
                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
                 } else {
@@ -2364,6 +2367,7 @@ public final class ActivityThread {
         return baseContext;
     }
 
+    //DOC:
     private void handleLaunchActivity(ActivityClientRecord r, Intent customIntent) {
         // If we are getting ready to gc after going to the background, well
         // we are back active so skip it.
@@ -2383,12 +2387,13 @@ public final class ActivityThread {
 
         // Initialize before creating the activity
         WindowManagerGlobal.initialize();
-
+        //doc:１这里初始化一个Activity。
         Activity a = performLaunchActivity(r, customIntent);
 
         if (a != null) {
             r.createdConfig = new Configuration(mConfiguration);
             Bundle oldState = r.state;
+            //doc:2 调用handleResumeActivity
             handleResumeActivity(r.token, false, r.isForward,
                     !r.activity.mFinished && !r.startsNotResumed);
 
@@ -3005,7 +3010,7 @@ public final class ActivityThread {
         r.mPendingRemoveWindow = null;
         r.mPendingRemoveWindowManager = null;
     }
-
+    //doc:
     final void handleResumeActivity(IBinder token,
             boolean clearHide, boolean isForward, boolean reallyResume) {
         // If we are getting ready to gc after going to the background, well
@@ -3038,9 +3043,10 @@ public final class ActivityThread {
                 } catch (RemoteException e) {
                 }
             }
+            //doc:这里将view视图结构中最重要的东西都联合在一起啦。在setContentView中设置了这些东西
             if (r.window == null && !a.mFinished && willBeVisible) {
-                r.window = r.activity.getWindow();
-                View decor = r.window.getDecorView();
+                r.window = r.activity.getWindow();　//window
+                View decor = r.window.getDecorView(); //获得一个View对象
                 decor.setVisibility(View.INVISIBLE);
                 ViewManager wm = a.getWindowManager();
                 WindowManager.LayoutParams l = r.window.getAttributes();
@@ -3049,7 +3055,7 @@ public final class ActivityThread {
                 l.softInputMode |= forwardBit;
                 if (a.mVisibleFromClient) {
                     a.mWindowAdded = true;
-                    wm.addView(decor, l);
+                    wm.addView(decor, l);　//把view放进viewmanager中去。
                 }
 
             // If the window has already been added, but during resume
@@ -3159,7 +3165,7 @@ public final class ActivityThread {
                 if (cv == null) {
                     mThumbnailCanvas = cv = new Canvas();
                 }
-    
+
                 cv.setBitmap(thumbnail);
                 if (!r.activity.onCreateThumbnail(thumbnail, cv)) {
                     mAvailThumbnailBitmap = thumbnail;
@@ -3457,12 +3463,12 @@ public final class ActivityThread {
 
     private void handleWindowVisibility(IBinder token, boolean show) {
         ActivityClientRecord r = mActivities.get(token);
-        
+
         if (r == null) {
             Log.w(TAG, "handleWindowVisibility: no activity for token " + token);
             return;
         }
-        
+
         if (!show && !r.stopped) {
             performStopActivityInner(r, null, show, false);
         } else if (show && r.stopped) {
@@ -3890,10 +3896,10 @@ public final class ActivityThread {
                 }
             }
         }
-        
+
         if (DEBUG_CONFIGURATION) Slog.v(TAG, "Relaunching activity "
                 + tmp.token + ": changedConfig=" + changedConfig);
-        
+
         // If there was a pending configuration change, execute it first.
         if (changedConfig != null) {
             mCurDefaultDisplayDpi = changedConfig.densityDpi;
@@ -4090,7 +4096,7 @@ public final class ActivityThread {
             if (config == null) {
                 return;
             }
-            
+
             if (DEBUG_CONFIGURATION) Slog.v(TAG, "Handle configuration changed: "
                     + config);
 
@@ -4138,7 +4144,7 @@ public final class ActivityThread {
 
         if (DEBUG_CONFIGURATION) Slog.v(TAG, "Handle activity config changed: "
                 + r.activityInfo.name);
-        
+
         performConfigurationChanged(r.activity, mCompatConfiguration);
 
         freeTextLayoutCachesIfNeeded(r.activity.mCurrentConfig.diff(mCompatConfiguration));
@@ -4217,7 +4223,7 @@ public final class ActivityThread {
         ApplicationPackageManager.handlePackageBroadcast(cmd, packages,
                 hasPkgInfo);
     }
-        
+
     final void handleLowMemory() {
         ArrayList<ComponentCallbacks2> callbacks = collectComponentCallbacks(true, null);
 
@@ -4264,7 +4270,7 @@ public final class ActivityThread {
             String[] packages = getPackageManager().getPackagesForUid(uid);
 
             // If there are several packages in this application we won't
-            // initialize the graphics disk caches 
+            // initialize the graphics disk caches
             if (packages != null && packages.length == 1) {
                 HardwareRenderer.setupDiskCache(cacheDir);
                 RenderScript.setupDiskCache(cacheDir);
@@ -4368,7 +4374,7 @@ public final class ActivityThread {
             if (cacheDir != null) {
                 // Provide a usable directory for temporary files
                 System.setProperty("java.io.tmpdir", cacheDir.getAbsolutePath());
-    
+
                 setupGraphicsSupport(data.info, cacheDir);
             } else {
                 Log.e(TAG, "Unable to setupGraphicsSupport due to missing cache directory");
@@ -5146,7 +5152,7 @@ public final class ActivityThread {
                         if (mPendingConfiguration == null ||
                                 mPendingConfiguration.isOtherSeqNewer(newConfig)) {
                             mPendingConfiguration = newConfig;
-                            
+
                             sendMessage(H.CONFIGURATION_CHANGED, newConfig);
                         }
                     }
